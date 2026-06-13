@@ -17,6 +17,14 @@ export const requireAuth = async (
   }
 
   const token = authHeader.split('Bearer ')[1];
+
+  // Identificador especial para bypass de login do Firebase
+  if (token.startsWith('dummy_token_local_mode__')) {
+    const uid = token.split('__')[1] || 'default_local_user';
+    req.user = { uid, email: 'local@device.app' } as DecodedIdToken;
+    return next();
+  }
+
   try {
     const decodedToken = await adminAuth.verifyIdToken(token);
     req.user = decodedToken;

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { User } from 'firebase/auth';
+import { User } from '../App';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, Plus, Trash2, FileText, ChevronRight, Sparkles, GraduationCap } from 'lucide-react';
 import NotesEditor from './NotesEditor';
-import AIEnhancedExam from './AIEnhancedExam';
 
 interface SubjectViewProps {
   user: User;
@@ -17,7 +16,7 @@ export default function SubjectView({ user, subject, studySessions = [], onBack 
   const [newChapter, setNewChapter] = useState('');
   const [activeChapter, setActiveChapter] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'chapters' | 'exams'>('chapters');
+  const [viewMode, setViewMode] = useState<'chapters'>('chapters');
 
   const subjectMinutes = studySessions
     .filter((s: any) => s.subjectId === subject.id)
@@ -92,7 +91,7 @@ export default function SubjectView({ user, subject, studySessions = [], onBack 
     setError(null);
 
     // Adição otimista instantânea no celular
-    const tempId = -Date.now();
+    const tempId = -Math.floor(Math.random() * 1000000);
     const optimisticChapter = {
       id: tempId,
       title: newChapter,
@@ -221,26 +220,12 @@ export default function SubjectView({ user, subject, studySessions = [], onBack 
                   <motion.div layoutId="subjectViewUnderline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600" />
                 )}
               </button>
-
-              <button
-                type="button"
-                onClick={() => setViewMode('exams')}
-                className={`pb-3 text-sm font-bold transition-all relative flex items-center gap-1.5 cursor-pointer ${
-                  viewMode === 'exams' ? 'text-indigo-600 font-extrabold' : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-                Provão Simulados IA
-                {viewMode === 'exams' && (
-                  <motion.div layoutId="subjectViewUnderline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600" />
-                )}
-              </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
               {/* Content Panel */}
               <div className="md:col-span-8 flex flex-col gap-6">
-                {viewMode === 'chapters' ? (
+                {viewMode === 'chapters' && (
                   <>
                     {error && (
                       <div className="bg-red-50 border border-red-200 text-red-800 text-xs py-3.5 px-4 rounded-xl flex items-start justify-between">
@@ -312,8 +297,6 @@ export default function SubjectView({ user, subject, studySessions = [], onBack 
                       )}
                     </div>
                   </>
-                ) : (
-                  <AIEnhancedExam user={user} subject={subject} chapters={chapters} />
                 )}
               </div>
 

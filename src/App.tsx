@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { onAuthStateChanged, signInWithPopup, User } from 'firebase/auth';
+import { onAuthStateChanged, signInWithPopup } from 'firebase/auth';
 import { auth, googleAuthProvider } from './lib/firebase';
+
+export { type User } from 'firebase/auth';
 import { 
   BookOpen, 
   LogOut, 
@@ -34,17 +36,22 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
-      setUser(u);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser as any);
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
+
     return () => unsubscribe();
   }, []);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F9F8F3] text-slate-550">
-        Carregando...
+        Carregando Caderno...
       </div>
     );
   }
@@ -57,11 +64,21 @@ export default function App() {
 }
 
 function LoginScreen() {
+  const [errorMsg, setErrorMsg] = useState("");
+
   const handleLogin = async () => {
     try {
+      setErrorMsg("");
       await signInWithPopup(auth, googleAuthProvider);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      if (err.code === 'auth/unauthorized-domain') {
+        setErrorMsg("Erro: Este domínio não está autorizado no Firebase. Adicione a URL atual na aba 'Authorized domains' nas configurações de Autenticação do Firebase Console.");
+      } else if (err.code === 'auth/popup-closed-by-user') {
+        // Usuário fechou, ignorar
+      } else {
+        setErrorMsg(`Erro ao fazer login: ${err.message}`);
+      }
     }
   };
 
@@ -77,6 +94,13 @@ function LoginScreen() {
             Seu caderno de estudos digital inteligente. Organize, revise e conquiste seus objetivos.
           </p>
         </div>
+        
+        {errorMsg && (
+          <div className="p-3 text-sm text-red-600 bg-red-50 rounded-xl mt-4">
+            {errorMsg}
+          </div>
+        )}
+
         <button
           onClick={handleLogin}
           type="button"
@@ -425,7 +449,7 @@ function Dashboard({ user }: { user: User }) {
     if (!newSubject.trim()) return;
 
     // Criar matéria de forma otimista local
-    const tempId = -Date.now();
+    const tempId = -Math.floor(Math.random() * 1000000);
     const optimisticSubject = {
       id: tempId,
       name: newSubject,
@@ -508,7 +532,7 @@ function Dashboard({ user }: { user: User }) {
     setLoggingProgress(true);
 
     // Sessão otimista local
-    const tempId = -Date.now();
+    const tempId = -Math.floor(Math.random() * 1000000);
     const optimisticSession = {
       id: tempId,
       userId: user.uid,
@@ -606,7 +630,7 @@ function Dashboard({ user }: { user: User }) {
       if (totalMinutesElapsed <= 0) return;
 
       // Adicionar sessão local de forma otimista
-      const tempId = -Date.now();
+      const tempId = -Math.floor(Math.random() * 1000000);
       const optimisticSession = {
         id: tempId,
         userId: user.uid,
@@ -792,9 +816,15 @@ function Dashboard({ user }: { user: User }) {
 
   const pendingRevisionsCount = revisions.filter(r => r.status === 'pending').length;
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     cleanSynthSound();
-    auth.signOut();
+    localStorage.removeItem('studybook_local_uid');
+    try {
+      const { signOut } = await import('firebase/auth');
+      await signOut(auth);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleResetData = async () => {
