@@ -73,9 +73,9 @@ function LoginScreen() {
     } catch (err: any) {
       console.error(err);
       if (err.code === 'auth/unauthorized-domain') {
-        setErrorMsg("Erro: Este domínio não está autorizado no Firebase. Adicione a URL atual na aba 'Authorized domains' nas configurações de Autenticação do Firebase Console.");
+        setErrorMsg(`Erro: O domínio ${window.location.hostname} não está autorizado no Firebase. Acesse o console do Firebase, vá em Authentication > Settings > Authorized domains e adicione este domínio.`);
       } else if (err.code === 'auth/popup-closed-by-user') {
-        // Usuário fechou, ignorar
+        setErrorMsg("O popup de login foi fechado antes de concluir. Tente novamente ou abra o app em uma nova guia.");
       } else {
         setErrorMsg(`Erro ao fazer login: ${err.message}`);
       }
