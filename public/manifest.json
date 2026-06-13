@@ -1,0 +1,22 @@
+{
+  "short_name": "StudyBook",
+  "name": "StudyBook - Caderno Inteligente",
+  "description": "Seu caderno de estudos digital inteligente. Organize, revise e conquiste seus objetivos.",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/color/192/000000/book.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://img.icons8.com/color/512/000000/book.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#F9F8F3",
+  "theme_color": "#4f46e5",
+  "display": "standalone",
+  "orientation": "portrait"
+}
